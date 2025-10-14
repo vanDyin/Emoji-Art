@@ -8,20 +8,27 @@
 import SwiftUI
 
 struct PaletteChooser: View {
-    var store: PaletteStore
+    @Environment(PaletteStore.self) private var store
     
     var body: some View {
         HStack {
             chooser
             view(for: store.palettes[store.cursorIndex])
         }
+        .clipped()
     }
     
     var chooser: some View {
-        Button{
-            
-        } label: {
-            Image(systemName: "paintpalette")
+        AnimatedActionButton(systemImage: "paintpalette") {
+            store.cursorIndex += 1
+        }
+        .contextMenu {
+            AnimatedActionButton("New", systemImage: "plus") {
+                store.insert(name: "Math", emojis: "+−×÷∝∞")
+            }
+            AnimatedActionButton("Delete", systemImage: "minus.circle", role: .destructive) {
+                store.palettes.remove(at: store.cursorIndex)
+            }
         }
     }
     
@@ -30,9 +37,31 @@ struct PaletteChooser: View {
             Text(palette.name)
             ScrollingEmojis(palette.emojis)
         }
+        .id(palette.id)
+        .transition(.asymmetric(insertion: .move(edge: .bottom), removal: .move(edge: .top)))
+    }
+}
+
+struct ScrollingEmojis: View {
+    let emojis: [String]
+    
+    init(_ emojis: String) {
+        self.emojis = emojis.uniqued.map(String.init)
+    }
+    
+    var body: some View {
+        ScrollView(.horizontal) {
+            HStack {
+                ForEach(emojis, id: \.self) {emoji in
+                    Text(emoji)
+                        .draggable(emoji)
+                }
+            }
+        }
     }
 }
 
 #Preview {
-    PaletteChooser(store: PaletteStore(named: "Preview"))
+    PaletteChooser()
+        .environment(PaletteStore(named: "Preview"))
 }

@@ -25,7 +25,7 @@ struct EmojiArtDocumentView: View {
     var body: some View {
         VStack(spacing: 0) {
             documentBody
-            PaletteChooser(emojis)
+            PaletteChooser()
                 .font(.system(size: paletteEmojiSize))
                 .padding(.horizontal)
                 .scrollIndicators(.hidden)
@@ -104,25 +104,6 @@ struct EmojiArtDocumentView: View {
             Text(emoji.string)
                 .font(emoji.font)
                 .position(emoji.position.in(geometry))
-        }
-    }
-}
-
-struct ScrollingEmojis: View {
-    let emojis: [String]
-    
-    init(_ emojis: String) {
-        self.emojis = emojis.uniqued.map(String.init)
-    }
-    
-    var body: some View {
-        ScrollView(.horizontal) {
-            HStack {
-                ForEach(emojis, id: \.self) {emoji in
-                    Text(emoji)
-                        .draggable(emoji)
-                }
-            }
         }
     }
 }
