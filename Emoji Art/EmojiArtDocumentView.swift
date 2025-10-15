@@ -16,6 +16,8 @@ struct EmojiArtDocumentView: View {
     @State private var zoom: CGFloat = 1
     @State private var pan: CGOffset = .zero
     
+    @State private var selectedEmojis = Set<Emoji.ID>()
+    
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
     
@@ -102,9 +104,27 @@ struct EmojiArtDocumentView: View {
             .position(Emoji.Position.zero.in(geometry))
         ForEach(document.emojis) { emoji in
             Text(emoji.string)
+                .overlay {
+                    if selectedEmojis.contains(emoji.id) {
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color.gray, lineWidth: 2)
+                    }
+                }
                 .font(emoji.font)
                 .position(emoji.position.in(geometry))
+                .gesture(emojiTapGesture(for: emoji))
         }
+    }
+    
+    private func emojiTapGesture(for emoji: Emoji) -> some Gesture {
+        TapGesture()
+            .onEnded {
+                if !selectedEmojis.contains(emoji.id) {
+                    selectedEmojis.insert(emoji.id)
+                } else {
+                    selectedEmojis.remove(emoji.id)
+                }
+            }
     }
 }
 
