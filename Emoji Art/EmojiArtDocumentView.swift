@@ -119,12 +119,18 @@ struct EmojiArtDocumentView: View {
     private func emojiTapGesture(for emoji: Emoji) -> some Gesture {
         TapGesture()
             .onEnded {
-                if !selectedEmojis.contains(emoji.id) {
-                    selectedEmojis.insert(emoji.id)
-                } else {
-                    selectedEmojis.remove(emoji.id)
-                }
+                selectedEmojis.toggleSelection(emoji.id)
             }
+    }
+}
+
+extension Set where Element: Hashable {
+    mutating func toggleSelection(_ element: Element) {
+        if contains(element) {
+            remove(element)
+        } else {
+            insert(element)
+        }
     }
 }
 
