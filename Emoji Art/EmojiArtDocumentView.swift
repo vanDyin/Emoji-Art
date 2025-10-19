@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-//Сделать рабочий жетс перетягивания
-
 struct EmojiArtDocumentView: View {
     typealias Emoji = EmojiArt.Emoji
     var document: EmojiArtDocument
@@ -20,6 +18,9 @@ struct EmojiArtDocumentView: View {
     
     @GestureState private var gestureZoom: CGFloat = 1
     @GestureState private var gesturePan: CGOffset = .zero
+    
+    @GestureState private var emojiGestureZoom: CGFloat = 1
+    @GestureState private var emojiGesturePan: CGOffset = .zero
     
     private let emojis = "👻🍎😃🤪☹️🤯🐶🐭🦁🐵🦆🐝🐢🐄🐖🌲🌴🌵🍄🌞🌎🔥🌈🌧️🌨️☁️⛄️⛳️🚗🚙🚓🚲🛺🏍️🚘✈️🛩️🚀🚁🏰🏠❤️💤⛵️"
     private let paletteEmojiSize: CGFloat = 40
@@ -42,7 +43,9 @@ struct EmojiArtDocumentView: View {
                     .scaleEffect(zoom * gestureZoom)
                     .offset(pan + gesturePan)
             }
-            .gesture(panGesture.simultaneously(with: zoomGesture))
+            .gesture(panGesture
+                .simultaneously(with: zoomGesture)
+            )
             .dropDestination(for: Sturldata.self) { sturldatas, location in
                 drop(sturldatas, at: location, in: geometry)
             }
@@ -66,6 +69,13 @@ struct EmojiArtDocumentView: View {
             }
             .onEnded { value in
                 pan += value.translation
+            }
+    }
+    
+    private var tapGesture: some Gesture {
+        TapGesture()
+            .onEnded { _ in
+                selectedEmojis.removeAll()
             }
     }
     
@@ -111,8 +121,13 @@ struct EmojiArtDocumentView: View {
                     }
                 }
                 .font(emoji.font)
+                .scaleEffect(selectedEmojis.contains(emoji.id) ? emojiGestureZoom : 1)
                 .position(emoji.position.in(geometry))
-                .gesture(emojiTapGesture(for: emoji))
+                .offset(selectedEmojis.contains(emoji.id) ? emojiGesturePan : .zero)
+                .gesture(emojiTapGesture(for: emoji)
+                    .simultaneously(with: emojiPanGesture(for: emoji))
+                    
+                )
         }
     }
     
@@ -120,6 +135,34 @@ struct EmojiArtDocumentView: View {
         TapGesture()
             .onEnded {
                 selectedEmojis.toggleSelection(emoji.id)
+            }
+    }
+    
+    private func emojiPanGesture(for emoji: Emoji) -> some Gesture {
+        DragGesture()
+            .updating($emojiGesturePan) { value, emojiGesturePan, _ in
+                if selectedEmojis.contains(emoji.id) {
+                    emojiGesturePan = value.translation
+                }
+            }
+            .onEnded { value in
+                for emojiId in selectedEmojis {
+                    document.move(emojiWithId: emojiId, by: value.translation)
+                }
+            }
+    }
+    
+    private var emojiZoomGesture: some Gesture { //добавить его в как-то
+        MagnifyGesture()
+            .updating($emojiGestureZoom) { value, emojiGestureZoom, _ in
+                for _ in selectedEmojis {
+                    emojiGestureZoom = value.magnification
+                }
+            }
+            .onEnded { value in
+                for emojiId in selectedEmojis {
+                    document.resize(emojiWithId: emojiId, by: value.magnification)
+                }
             }
     }
 }
