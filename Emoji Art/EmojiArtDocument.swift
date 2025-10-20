@@ -38,6 +38,10 @@ class EmojiArtDocument {
         emojiArt.addEmoji(emoji, at: position, size: Int(size))
     }
     
+    func removeEmoji(_ emojiId: Int) {
+        emojiArt.removeEmoji(emojiId)
+    }
+    
     func move(_ emoji: Emoji, by offset: CGOffset) {
         let existingPosition = emojiArt[emoji].position
         emojiArt[emoji].position = Emoji.Position(

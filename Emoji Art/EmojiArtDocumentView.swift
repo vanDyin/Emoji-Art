@@ -28,10 +28,14 @@ struct EmojiArtDocumentView: View {
     var body: some View {
         VStack(spacing: 0) {
             documentBody
-            PaletteChooser()
-                .font(.system(size: paletteEmojiSize))
-                .padding(.horizontal)
-                .scrollIndicators(.hidden)
+            HStack {
+                PaletteChooser()
+                    .font(.system(size: paletteEmojiSize))
+                    .padding(.horizontal)
+                    .scrollIndicators(.hidden)
+                removeEmojiButton
+                    .padding()
+            }
         }
     }
     
@@ -43,22 +47,45 @@ struct EmojiArtDocumentView: View {
                     .scaleEffect(zoom * gestureZoom)
                     .offset(pan + gesturePan)
             }
-            .gesture(panGesture
-                .simultaneously(with: zoomGesture)
-            )
+            .gesture(tapGesture)
+            .gesture(zoomGesture.simultaneously(with: panGesture))
             .dropDestination(for: Sturldata.self) { sturldatas, location in
                 drop(sturldatas, at: location, in: geometry)
             }
         }
     }
     
+    private var removeEmojiButton: some View {
+        Button(action: {
+            for emojiId in selectedEmojis {
+                document.removeEmoji(emojiId)
+            }
+            selectedEmojis.removeAll()
+        }, label: {
+            Label("delete", systemImage: "trash")
+        })
+    }
+    
     private var zoomGesture: some Gesture {
         MagnifyGesture()
             .updating($gestureZoom) { inMotionPinchScale, gestureZoom, _ in
-                gestureZoom = inMotionPinchScale.magnification
+                if selectedEmojis.isEmpty {
+                    gestureZoom = inMotionPinchScale.magnification
+                }
+            }
+            .updating($emojiGestureZoom) { inMotionPinchScale, emojiGestureZoom, _ in
+                if !selectedEmojis.isEmpty {
+                    emojiGestureZoom = inMotionPinchScale.magnification
+                }
             }
             .onEnded { endingPinchScale in
-                zoom *= endingPinchScale.magnification
+                if selectedEmojis.isEmpty {
+                    zoom *= endingPinchScale.magnification
+                } else {
+                    for emojiId in selectedEmojis {
+                        document.resize(emojiWithId: emojiId, by: endingPinchScale.magnification)
+                    }
+                }
             }
     }
     
@@ -148,20 +175,6 @@ struct EmojiArtDocumentView: View {
             .onEnded { value in
                 for emojiId in selectedEmojis {
                     document.move(emojiWithId: emojiId, by: value.translation)
-                }
-            }
-    }
-    
-    private var emojiZoomGesture: some Gesture { //добавить его в как-то
-        MagnifyGesture()
-            .updating($emojiGestureZoom) { value, emojiGestureZoom, _ in
-                for _ in selectedEmojis {
-                    emojiGestureZoom = value.magnification
-                }
-            }
-            .onEnded { value in
-                for emojiId in selectedEmojis {
-                    document.resize(emojiWithId: emojiId, by: value.magnification)
                 }
             }
     }
