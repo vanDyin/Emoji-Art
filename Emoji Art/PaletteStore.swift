@@ -33,11 +33,14 @@ class PaletteStore {
     
     var palettes: [Palette] {
         get {
-            UserDefaults.standard.palettes(forKey: userDefaultsKey)
+            access(keyPath: \.palettes)
+            return UserDefaults.standard.palettes(forKey: userDefaultsKey)
         }
         set {
-            if !newValue.isEmpty {
-                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+            withMutation(keyPath: \.palettes) {
+                if !newValue.isEmpty {
+                    UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+                }
             }
         }
     }
