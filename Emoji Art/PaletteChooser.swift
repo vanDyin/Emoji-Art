@@ -10,12 +10,18 @@ import SwiftUI
 struct PaletteChooser: View {
     @Environment(PaletteStore.self) private var store
     
+    @State private var showPaletteEditor = false
+    
     var body: some View {
         HStack {
             chooser
             view(for: store.palettes[store.cursorIndex])
         }
         .clipped()
+        .sheet(isPresented: $showPaletteEditor) {
+            PaletteEditor(palette: $store.palettes[store.cursorIndex])
+                .font(nil)
+        }
     }
     
     var chooser: some View {
@@ -23,12 +29,30 @@ struct PaletteChooser: View {
             store.cursorIndex += 1
         }
         .contextMenu {
+            gotoMenu
             AnimatedActionButton("New", systemImage: "plus") {
                 store.insert(name: "Math", emojis: "+−×÷∝∞")
             }
             AnimatedActionButton("Delete", systemImage: "minus.circle", role: .destructive) {
                 store.palettes.remove(at: store.cursorIndex)
             }
+            AnimatedActionButton("Edit", systemImage: "pencil") {
+                showPaletteEditor = true
+            }
+        }
+    }
+    
+    private var gotoMenu: some View {
+        Menu {
+            ForEach(store.palettes) { palette in
+                AnimatedActionButton(palette.name) {
+                    if let index = store.palettes.firstIndex(where: { $0.id == palette.id }) {
+                            store.cursorIndex = index
+                    }
+                }
+            }
+        } label: {
+            Label("Go to", systemImage: "text.insert")
         }
     }
     
