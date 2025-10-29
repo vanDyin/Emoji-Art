@@ -12,6 +12,8 @@ struct PaletteEditor: View {
     
     private let emojiFont = Font.system(size: 40)
     
+    @State private var emojisToAdd: String = ""
+    
     var body: some View {
         Form {
             Section(header: Text("Name")) {
@@ -19,8 +21,13 @@ struct PaletteEditor: View {
             }
             
             Section(header: Text("Emojis")) {
-                Text("Add emojis here")
+                TextField("Add emojis here", text: $emojisToAdd)
                     .font(emojiFont)
+                    .onChange(of: emojisToAdd) { _, emojisToAdd in
+                        palette.emojis = (emojisToAdd + palette.emojis)
+                            .filter{ $0.isEmoji }
+                            .uniqued
+                    }
                 removeEmojis
             }
         }
@@ -33,6 +40,12 @@ struct PaletteEditor: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 40))]) {
                 ForEach(palette.emojis.uniqued.map(String.init), id: \.self) { emoji in
                     Text(emoji)
+                        .onTapGesture {
+                            withAnimation {
+                                palette.emojis.remove(emoji.first!)
+                                emojisToAdd.remove(emoji.first!)
+                            }
+                        }
                 }
             }
         }

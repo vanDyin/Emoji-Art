@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct PaletteChooser: View {
     @Environment(PaletteStore.self) private var store
     
@@ -18,8 +19,12 @@ struct PaletteChooser: View {
             view(for: store.palettes[store.cursorIndex])
         }
         .clipped()
+        //changed due to Observation
         .sheet(isPresented: $showPaletteEditor) {
-            PaletteEditor(palette: $store.palettes[store.cursorIndex])
+            PaletteEditor(palette: Binding(
+                get: { store.palettes[store.cursorIndex] },
+                set: { store.palettes[store.cursorIndex] = $0 }
+            ))
                 .font(nil)
         }
     }

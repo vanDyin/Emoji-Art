@@ -28,14 +28,10 @@ struct EmojiArtDocumentView: View {
     var body: some View {
         VStack(spacing: 0) {
             documentBody
-            HStack {
-                PaletteChooser()
-                    .font(.system(size: paletteEmojiSize))
-                    .padding(.horizontal)
-                    .scrollIndicators(.hidden)
-                removeEmojiButton
-                    .padding()
-            }
+            PaletteChooser()
+                .font(.system(size: paletteEmojiSize))
+                .padding(.horizontal)
+                .scrollIndicators(.hidden)
         }
     }
     
@@ -53,17 +49,6 @@ struct EmojiArtDocumentView: View {
                 drop(sturldatas, at: location, in: geometry)
             }
         }
-    }
-    
-    private var removeEmojiButton: some View {
-        Button(action: {
-            for emojiId in selectedEmojis {
-                document.removeEmoji(emojiId)
-            }
-            selectedEmojis.removeAll()
-        }, label: {
-            Label("delete", systemImage: "trash")
-        })
     }
     
     private var zoomGesture: some Gesture {
