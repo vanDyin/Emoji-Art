@@ -14,14 +14,22 @@ struct PaletteEditor: View {
     
     @State private var emojisToAdd: String = ""
     
+    enum Focused {
+        case name
+        case addEmojis
+    }
+    @FocusState private var focused: Focused?
+    
     var body: some View {
         Form {
             Section(header: Text("Name")) {
                 TextField("Name", text: $palette.name)
+                    .focused($focused, equals: .name)
             }
             
             Section(header: Text("Emojis")) {
                 TextField("Add emojis here", text: $emojisToAdd)
+                    .focused($focused, equals: .addEmojis)
                     .font(emojiFont)
                     .onChange(of: emojisToAdd) { _, emojisToAdd in
                         palette.emojis = (emojisToAdd + palette.emojis)
@@ -32,6 +40,13 @@ struct PaletteEditor: View {
             }
         }
         .frame(minWidth: 300, minHeight: 350)
+        .onAppear {
+            if palette.name.isEmpty {
+                focused = .name
+            } else {
+                focused = .addEmojis
+            }
+        }
     }
     
     var removeEmojis: some View {
@@ -53,6 +68,12 @@ struct PaletteEditor: View {
     }
 }
 
-//#Preview {
-//    PaletteEditor()
-//}
+#Preview {
+    struct Preview: View {
+        @State var store = PaletteStore(named: "Preview")
+        var body: some View {
+            PaletteEditor(palette: $store.palettes.first!)
+        }
+    }
+    return Preview()
+}
