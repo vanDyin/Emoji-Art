@@ -8,22 +8,46 @@
 import SwiftUI
 
 struct EditablePaletteList: View {
-    @Environment(PaletteStore.self) private var store
+    @Bindable var store: PaletteStore
+    @State private var showCursorPalette = false
     
     var body: some View {
-        NavigationStack {
-            List(store.palettes) { palette in
-                NavigationLink(value: palette) {
+        
+        List {
+            ForEach(store.palettes) { palette in
+                NavigationLink(value: palette.id) {
                     VStack(alignment: .leading) {
                         Text(palette.name)
                         Text(palette.emojis).lineLimit(1)
                     }
                 }
+                
             }
-            .navigationDestination(for: Palette.self) { palette in
-                PaletteView(palette: palette)
+            .onDelete { indexSet in
+                withAnimation {
+                    store.palettes.remove(atOffsets: indexSet)
+                }
             }
-            .navigationTitle("\(store.name) Palettes")
+            .onMove { indexSet, newOffset in
+                store.palettes.move(fromOffsets: indexSet, toOffset: newOffset)
+            }
+        }
+        .navigationDestination(isPresented: $showCursorPalette) {
+            PaletteEditor(palette: $store.palettes[store.cursorIndex])
+        }
+        .navigationDestination(for: Palette.ID.self) { paletteid in
+            if let index = store.palettes.firstIndex(where: { $0.id == paletteid }) {
+                PaletteEditor(palette: $store.palettes[index])
+            }
+        }
+        .navigationTitle("\(store.name) Palettes")
+        .toolbar {
+            Button {
+                store.insert(name: "", emojis: "")
+                showCursorPalette = true
+            } label: {
+                Image(systemName: "plus")
+            }
         }
     }
 }
