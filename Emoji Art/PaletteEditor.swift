@@ -18,6 +18,7 @@ struct PaletteEditor: View {
         case name
         case addEmojis
     }
+    
     @FocusState private var focused: Focused?
     
     var body: some View {

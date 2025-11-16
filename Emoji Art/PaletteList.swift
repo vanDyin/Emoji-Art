@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct EditablePaletteList: View {
-    @Bindable var store: PaletteStore
+    @ObservedObject var store: PaletteStore
     @State private var showCursorPalette = false
     
     var body: some View {
-        
         List {
             ForEach(store.palettes) { palette in
                 NavigationLink(value: palette.id) {
@@ -53,7 +52,7 @@ struct EditablePaletteList: View {
 }
 
 struct PaletteList: View {
-    @Environment(PaletteStore.self) private var store
+    @EnvironmentObject var store: PaletteStore
     
     var body: some View {
         NavigationStack {

@@ -5,9 +5,8 @@
 //  Created by Вячеслав Полянский on 13.10.2025.
 //
 
-import Foundation
 import SwiftUI
-import Observation
+import Combine
 
 extension UserDefaults {
     func palettes(forKey key: String) -> [Palette] {
@@ -36,8 +35,7 @@ extension PaletteStore: Hashable {
     }
 }
 
-@Observable
-class PaletteStore: Identifiable {
+class PaletteStore: ObservableObject, Identifiable {
     let name: String
     
     var id: String { name }
@@ -46,19 +44,17 @@ class PaletteStore: Identifiable {
     
     var palettes: [Palette] {
         get {
-            access(keyPath: \.palettes)
-            return UserDefaults.standard.palettes(forKey: userDefaultsKey)
+            UserDefaults.standard.palettes(forKey: userDefaultsKey)
         }
         set {
-            withMutation(keyPath: \.palettes) {
-                if !newValue.isEmpty {
-                    UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
-                }
+            if !newValue.isEmpty {
+                UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
+                objectWillChange.send()
             }
         }
     }
     
-    private var _cursorIndex = 0
+    @Published private var _cursorIndex = 0
     
     var cursorIndex: Int {
         get {
@@ -76,6 +72,20 @@ class PaletteStore: Identifiable {
             if palettes.isEmpty {
                 palettes = [Palette(name: "Warning", emojis: "⚠️")]
             }
+        }
+        observer = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main) { [weak self] notification in
+                self?.objectWillChange.send()
+            }
+    }
+    
+    @State private var observer: NSObjectProtocol?
+    
+    deinit {
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
     

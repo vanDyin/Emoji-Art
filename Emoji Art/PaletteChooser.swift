@@ -9,7 +9,7 @@ import SwiftUI
 
 
 struct PaletteChooser: View {
-    @Environment(PaletteStore.self) private var store
+    @EnvironmentObject var store: PaletteStore
     
     @State private var showPaletteEditor = false
     @State private var showPaletteList = false
@@ -103,5 +103,5 @@ struct ScrollingEmojis: View {
 
 #Preview {
     PaletteChooser()
-        .environment(PaletteStore(named: "Preview"))
+        .environmentObject(PaletteStore(named: "Preview"))
 }
